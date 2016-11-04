@@ -1,5 +1,6 @@
 #!/usr/bin/env python -u
 from __future__ import unicode_literals
+import configparser
 import os
 import sys
 import json
@@ -9,10 +10,9 @@ import io
 import logging
 import argparse
 
-API_URL = "https://api.trello.com/1/"
-ORGANIZATION_IDS = ""
+api_url = ""
 ORGANIZATION_NAMES = ""
-log_level = "INFO"
+ORGANIZATION_IDS = []
 
 
 def get_organization_ids(ORGANIZATION_NAMES, api_key, token):
@@ -30,7 +30,9 @@ def get_organization_ids(ORGANIZATION_NAMES, api_key, token):
         'token': '{}'.format(token),
     }
 
-    organizations = requests.get(API_URL + "members/me/organizations", params=organizations_payload)
+    logger.debug("Trying to find Orgs for {}".format(selected_organizations))
+
+    organizations = requests.get(api_url + "members/me/organizations", params=organizations_payload)
     if len(organizations.json()) <= 0:
         logger.error("No organizations found.")
     else:
@@ -44,29 +46,46 @@ def get_organization_ids(ORGANIZATION_NAMES, api_key, token):
 if __name__ == "__main__":
 
     # parse args
-    parser = argparse.ArgumentParser(description="Trello Backup")
-    parser.add_argument("-d", "--directory", required=True,
-                        help="Directory to save JSON files, created if it does not exist")
-    parser.add_argument("-a", "--app-name", required=True, help="Trello App Name")
-    parser.add_argument("-k", "--key", help="Trello API Key")
-    parser.add_argument("-t", "--oauth-token", help="Trello OAuth Token")
-    parser.add_argument("-l", "--log", help="Logging level - info|INFO|WARNING|ERROR|CRITICAL")
-    parser.add_argument("-o", "--org-id", help="Organisation by ID to backup. ")
-    parser.add_argument("-n", "--org-name", help="Organisation by Name to backup")
+    conf_parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False)
+    conf_parser.add_argument("-c", "--config", help="Specify Config File")
 
-    args = parser.parse_args()
+    args, remaining_args = conf_parser.parse_known_args()
 
-    api_key = args.key
-    token = args.oauth_token
-    output_directory = args.directory
+    defaults = {"option": "default"}
+
+    if args.config:
+        config = configparser.SafeConfigParser()
+        config.read([args.config])
+        defaults.update(dict(config.items("Defaults")))
+
+    parser = argparse.ArgumentParser(parents=[conf_parser])
+    parser.set_defaults(**defaults)
+    parser.add_argument("-d", "--output_directory", help="Directory to save JSON files, created if it does not exist")
+    parser.add_argument("-a", "--app_name", help="Trello App Name")
+    parser.add_argument("-k", "--api_key", help="Trello API Key")
+    parser.add_argument("-t", "--token", help="Trello OAuth Token")
+    parser.add_argument("-e", "--token_expiration", help="Trello Token Expiration")
+    parser.add_argument("-l", "--log_level", help="Logging level - info|INFO|WARNING|ERROR|CRITICAL")
+    parser.add_argument("-o", "--organization_ids", help="Organisation by ID(s) to backup. ")
+    parser.add_argument("-n", "--organization_names", help="Organisation by Name(s) to backup")
+    args = parser.parse_args(remaining_args)
+
+    api_url = args.api_url
+    api_key = args.api_key
+    token = args.token
+    token_expiration = args.token_expiration
+    output_directory = args.output_directory
     app_name = args.app_name
-    if args.org_id:
-        ORGANIZATION_IDS = args.org_id.lower()
-    if args.org_name:
-        ORGANIZATION_NAMES = args.org_name.lower()
+    if args.organization_ids:
+        ORGANIZATION_IDS = args.organization_ids.lower()
+    if args.organization_names:
+        ORGANIZATION_NAMES = args.organization_names.lower()
 
-    if args.log is not None:
-        log_level = args.log.upper()
+    if args.log_level is not None:
+        log_level = args.log_level.upper()
 
     # Create our logger
     logger = logging.getLogger("root")
@@ -79,16 +98,16 @@ if __name__ == "__main__":
 
     if not api_key:
         logger.error("You need an API key to run this app.")
-        logger.error("Visit this url: https://trello.com/1/appKey/generate, and re-run script")
+        logger.error("Visit this url: {}appKey/generate, and re-run script".format(api_url))
         sys.exit(1)
 
     if not token:
         logger.error("You need a token to run this app.")
         logger.error("Visit this url: {0}connect?key={1}&name={2}&response_type=token&expiration={3}".format(
-            API_URL,
+            api_url,
             api_key,
             app_name,
-            "never"))
+            token_expiration))
         logger.error("Then re-run script")
         sys.exit(1)
 
@@ -126,8 +145,9 @@ if __name__ == "__main__":
         'organization': 'false',
     }
 
+    logger.debug("Organization_ids: {}".format(ORGANIZATION_IDS))
     for org_id in ORGANIZATION_IDS:
-        boards = requests.get(API_URL + "organizations/" + org_id + "/boards", params=boards_payload)
+        boards = requests.get(api_url + "organizations/" + org_id + "/boards", params=boards_payload)
         try:
             if len(boards.json()) <= 0:
                 logger.info("No boards found under Organisation ID: {}".format(org_id))
@@ -145,7 +165,7 @@ if __name__ == "__main__":
                 continue
 
             logger.info(" {0} ({1})".format(board["name"], board["id"]))
-            boardContents = requests.get(API_URL + "boards/" + board["id"], params=board_payload)
+            boardContents = requests.get(api_url + "boards/" + board["id"], params=board_payload)
             with io.open(output_directory + "/{0}_".format(board["name"].replace("/", "-")) + epoch_time + ".json",
                          "w", encoding="utf8") as file:
                 args = dict(sort_keys=True, indent=4)
