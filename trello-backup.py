@@ -11,18 +11,18 @@ import logging
 import argparse
 
 api_url = ""
-ORGANIZATION_NAMES = ""
-ORGANIZATION_IDS = []
+organization_names = ""
+organization_ids = []
 
 
-def get_organization_ids(ORGANIZATION_NAMES, api_key, token):
+def get_organization_ids(org_names, api_key, token):
     """
     Translates Org Name to ID
     """
     selected_organizations = []
-    for organization in ORGANIZATION_NAMES.split(","):
+    for organization in org_names.split(","):
         selected_organizations.append(organization.strip())
-    ORGANIZATION_IDS = []
+    org_ids = []
 
     # Parameters to get a list of organizations
     organizations_payload = {
@@ -39,9 +39,9 @@ def get_organization_ids(ORGANIZATION_NAMES, api_key, token):
         logger.info("Finding all Organizations.")
         for organization in organizations.json():
             if organization["name"].lower() in selected_organizations:
-                ORGANIZATION_IDS.append(organization["id"])
+                org_ids.append(organization["id"])
                 logger.debug("Org Added: {}".format(organization["id"]))
-    return ORGANIZATION_IDS
+    return org_ids
 
 if __name__ == "__main__":
 
@@ -80,9 +80,9 @@ if __name__ == "__main__":
     output_directory = args.output_directory
     app_name = args.app_name
     if args.organization_ids:
-        ORGANIZATION_IDS = args.organization_ids.lower()
+        organization_ids = args.organization_ids.lower()
     if args.organization_names:
-        ORGANIZATION_NAMES = args.organization_names.lower()
+        organization_names = args.organization_names.lower()
 
     if args.log_level is not None:
         log_level = args.log_level.upper()
@@ -111,9 +111,9 @@ if __name__ == "__main__":
         logger.error("Then re-run script")
         sys.exit(1)
 
-    if ORGANIZATION_NAMES and not ORGANIZATION_IDS:
-        ORGANIZATION_IDS = get_organization_ids(ORGANIZATION_NAMES, api_key, token)
-        if len(ORGANIZATION_IDS) < 1:
+    if organization_names and not organization_ids:
+        organization_ids = get_organization_ids(organization_names, api_key, token)
+        if len(organization_ids) < 1:
             logger.error("Finding Org ID failed.")
             sys.exit(1)
 
@@ -145,8 +145,8 @@ if __name__ == "__main__":
         'organization': 'false',
     }
 
-    logger.debug("Organization_ids: {}".format(ORGANIZATION_IDS))
-    for org_id in ORGANIZATION_IDS:
+    logger.debug("Organization_ids: {}".format(organization_ids))
+    for org_id in organization_ids:
         boards = requests.get(api_url + "organizations/" + org_id + "/boards", params=boards_payload)
         try:
             if len(boards.json()) <= 0:
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         epoch_time = str(int(time.time()))
 
         for board in boards.json():
-            if ORGANIZATION_IDS and (not board["idOrganization"] or not board["idOrganization"] in ORGANIZATION_IDS):
+            if organization_ids and (not board["idOrganization"] or not board["idOrganization"] in organization_ids):
                 continue
 
             logger.info(" {0} ({1})".format(board["name"], board["id"]))

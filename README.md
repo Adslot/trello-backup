@@ -4,13 +4,13 @@ Trello Backup
 This simple app backs up your Trello boards as JSON files to a local directory.
 
 ## Setup
------
-- `cp trello-backup.config.sample trello-backup.config` and edit accordingly
+
+- Copy `trello-backup.config.sample` to `trello-backup.config` and edit accordingly
 - run `trello-backup.py -c trello-backup.config -d directory_to_save_json` and follow the prompts to Generate a Trello API Key and OAuth Token
 
 All arguments can be overridden by parameters via commandline
 
-Note: The user must be added to the organisation(s)
+**Note**: The user must be added to the organisation(s)
 
 
 ## Usage: 
