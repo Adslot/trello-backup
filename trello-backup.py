@@ -26,11 +26,11 @@ def get_organization_ids(org_names, api_key, token):
 
     # Parameters to get a list of organizations
     organizations_payload = {
-        'key': '{}'.format(api_key),
-        'token': '{}'.format(token),
+        'key': '{0}'.format(api_key),
+        'token': '{0}'.format(token),
     }
 
-    logger.debug("Trying to find Orgs for {}".format(selected_organizations))
+    logger.debug("Trying to find Orgs for {0}".format(selected_organizations))
 
     organizations = requests.get(api_url + "members/me/organizations", params=organizations_payload)
     if len(organizations.json()) <= 0:
@@ -40,7 +40,7 @@ def get_organization_ids(org_names, api_key, token):
         for organization in organizations.json():
             if organization["name"].lower() in selected_organizations:
                 org_ids.append(organization["id"])
-                logger.debug("Org Added: {}".format(organization["id"]))
+                logger.debug("Org Added: {0}".format(organization["id"]))
     return org_ids
 
 if __name__ == "__main__":
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     args, remaining_args = conf_parser.parse_known_args()
 
-    defaults = {"option": "default"}
+    defaults = {}
 
     if args.config:
         config = configparser.SafeConfigParser()
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     if not api_key:
         logger.error("You need an API key to run this app.")
-        logger.error("Visit this url: {}appKey/generate, and re-run script".format(api_url))
+        logger.error("Visit this url: {0}appKey/generate, and re-run script".format(api_url))
         sys.exit(1)
 
     if not token:
@@ -119,15 +119,15 @@ if __name__ == "__main__":
 
     # Parameters to get list of boards
     boards_payload = {
-        'key': '{}'.format(api_key),
-        'token': '{}'.format(token),
+        'key': '{0}'.format(api_key),
+        'token': '{0}'.format(token),
         'filter': 'open',
         'lists': 'open',
     }
     # Parameters to get board contents
     board_payload = {
-        'key': '{}'.format(api_key),
-        'token': '{}'.format(token),
+        'key': '{0}'.format(api_key),
+        'token': '{0}'.format(token),
         'lists': 'open',
         'fields': 'all',
         'actions': 'all',
@@ -145,12 +145,12 @@ if __name__ == "__main__":
         'organization': 'false',
     }
 
-    logger.debug("Organization_ids: {}".format(organization_ids))
+    logger.debug("Organization_ids: {0}".format(organization_ids))
     for org_id in organization_ids:
         boards = requests.get(api_url + "organizations/" + org_id + "/boards", params=boards_payload)
         try:
             if len(boards.json()) <= 0:
-                logger.info("No boards found under Organisation ID: {}".format(org_id))
+                logger.info("No boards found under Organisation ID: {0}".format(org_id))
         except ValueError:
             logger.error("Unable to access your boards. Check your key and token.")
             sys.exit(1)
