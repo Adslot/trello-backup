@@ -1,12 +1,10 @@
-[Credentials]
+[Defaults]
 API_KEY = 
 TOKEN = 
 
-[Paths]
 API_URL = https://api.trello.com/1/
 OUTPUT_DIRECTORY = backups
 
-[Options]
 ; Expiration: "1hour", "1day", "30days", "never"
 TOKEN_EXPIRATION = never
 
@@ -19,4 +17,5 @@ ORGANIZATION_IDS =
 ; Organization names can be found in the URL: https://trello.com/{organization name}
 ORGANIZATION_NAMES = 
 
-PRETTY_PRINT = no
+; Default Logging Level
+LOG_LEVEL = INFO
