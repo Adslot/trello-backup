@@ -43,6 +43,7 @@ def get_organization_ids(org_names, api_key, token):
                 logger.debug("Org Added: {0}".format(organization["id"]))
     return org_ids
 
+
 if __name__ == "__main__":
 
     # parse args
@@ -167,7 +168,6 @@ if __name__ == "__main__":
             logger.info(" {0} ({1})".format(board["name"], board["id"]))
             boardContents = requests.get(api_url + "boards/" + board["id"], params=board_payload)
             with io.open(output_directory + "/{0}_".format(board["name"].replace("/", "-")) + epoch_time + ".json",
-                         "w", encoding="utf8") as file:
-                args = dict(sort_keys=True, indent=4)
-                data = json.dumps(boardContents.json(), ensure_ascii=False, **args)
-                file.write(data)
+                         "wb") as file:
+                args = dict(sort_keys=True, indent=4, ensure_ascii=True)
+                json.dump(boardContents.json(), file, **args)
