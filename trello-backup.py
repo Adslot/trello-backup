@@ -123,7 +123,7 @@ if __name__ == "__main__":
         'key': '{0}'.format(api_key),
         'token': '{0}'.format(token),
         'filter': 'open',
-        'lists': 'open',
+        'fields': 'all',
     }
     # Parameters to get board contents
     board_payload = {
@@ -137,7 +137,6 @@ if __name__ == "__main__":
         'cards': 'all',
         'card_fields': 'all',
         'card_attachments': 'true',
-        'lists': 'all',
         'list_fields': 'all',
         'members': 'all',
         'member_fields': 'all',
